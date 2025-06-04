@@ -1,0 +1,54 @@
+
+run javascript 1:
+
+
+// optional import of sdk modules
+import { execution } from '@dynatrace-sdk/automation-utils';
+
+export default async function () {
+  // your code goes here
+  // e.g. get the current execution
+  const ex = await execution();
+  console.log('Automated script execution on behalf of', ex.trigger);
+
+  return { triggeredBy: ex.trigger };
+}
+
+
+
+run javascript 2:
+
+
+import { execution } from "@dynatrace-sdk/automation-utils";
+import { eventsClient, EventIngestEventType } from '@dynatrace-sdk/client-classic-environment-v2';
+
+export default async function ({ executionId }) {
+
+const exe = await execution(executionId);
+const result = await exe.result("run_javascript_1");
+
+const my_event = {
+   "eventType": EventIngestEventType.CustomInfo,
+   "title": "Workflows quickstart sample event",
+   "properties": {
+      "triggeredBy": result.triggeredBy
+   }
+}
+
+const event_result = await eventsClient.createEvent({body: my_event})
+console.log(event_result)
+
+return event_result
+}
+
+
+
+
+execute_dql_query_1:
+
+
+fetch events, from:now() - 2h
+| filter event.type == "CUSTOM_INFO"
+| filter event.name == "Workflows quickstart sample event"
+| summarize EventCount = count()
+| fields EventCount
